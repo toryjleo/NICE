@@ -44,6 +44,38 @@ Vector<T> CpuOperations<T>::Transpose(const Vector<T> &a) {
   return at;
 }
 
+//Returns a matrix that is the logical opposite of the input
+template<typename T>
+Matrix<T> CpuOperations<T>::LogicalNot(const Matrix<T> &a) {
+  Matrix<T> aln = a.replicate(1,1);
+  //Iterate through the copied matrix
+  for(int r = 0; r < aln.rows(); ++r) {
+    for(int c = 0; c < aln.cols(); ++c) {
+      if(aln(r,c) == 0) {
+        aln(r,c) = 1;
+      } else {
+        aln(r,c) = 0;
+      }
+    }
+  }
+  return aln;
+}
+
+//Returns a Vector that is the logical opposite of the input
+template<typename T>
+Vector<T> CpuOperations<T>::LogicalNot(const Vector<T> &a) {
+  Vector<T> aln = a.replicate(1,1);
+  //Iterate through copied vector
+  for(int i = 0; i < a.size(); ++i) {
+    if(a(i) == 0) {
+      aln(i) = 1;
+    } else {
+    	aln(i) = 0;
+    }
+  }
+  return aln;
+}
+
 template class CpuOperations<int>;
 template class CpuOperations<float>;
 template class CpuOperations<double>;
