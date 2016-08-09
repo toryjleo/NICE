@@ -30,6 +30,8 @@
 #include <algorithm>
 #include <sstream>
 #include <vector>
+#include <cmath>
+
 
 #include "include/matrix.h"
 #include "include/vector.h"
@@ -197,6 +199,11 @@ Vector<T> FromFile(const std::string &input_file_path,
 template<typename T>
 static T reciprocal(T x) {
   return T(1) / x;
+}
+
+template<typename T>
+static T exp(T x) {
+  return std::exp(x);
 }
 
 }  // namespace util
