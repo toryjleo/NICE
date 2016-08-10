@@ -38,37 +38,40 @@ class LogisticRegression {
   Vector<T> theta;
   int iterations = 100;
   T lambda = 1;
-  float alpha = .001;
+  T alpha = .01;
+  T cost_change_threshold = .0001;
 
 
  public:
-/*  LogisticRegression(const Matrix<T> &xin, const Vector<T> &yin) {
-    x = xin;
-    y = yin;
-    theta.resize(x.cols(), 1);
-    theta.setZero();
-  }
-*/  LogisticRegression() {}
+  LogisticRegression() {}
 
   void SetX(const Matrix<T> &xin) {
-    x = xin;
-    theta.resize(x.cols(), 1);
+    x.resize(xin.rows(), xin.cols() + 1);
+    x.col(0).setOnes();
+    for(int i = 1; i <= xin.cols(); ++i) {
+      x.col(i) = xin.col(i - 1);
+    }
+    theta.resize(x.cols());
     theta.setZero();
   }
   void SetY(const Matrix<T> &yin) {
     y = yin;
   }
-  void SetIter(int iter) {
+  void SetIterations(int iter) {
     iterations = iter;
   }
   void SetLambda(T l) {
     lambda = l;
   }
-  void SetAlpha(float a) {
+  void SetAlpha(T a) {
     alpha = a;
+  }
+  void SetCostChangeThreshold(T c) {
+    cost_change_threshold = c;
   }
 
   void Fit(const Matrix<T> &xin, const Vector<T> &yin) {
+    // Initialize x, y, and theta
     x.resize(xin.rows(), xin.cols() + 1);
     x.col(0).setOnes();
     for(int i = 1; i <= xin.cols(); ++i) {
@@ -77,16 +80,39 @@ class LogisticRegression {
     y = yin;
     theta.resize(x.cols());
     theta.setZero();
-//    std::cout << Cost() << std::endl;
-    for(int i = 0; i < iterations; ++i) {
+    // Make the previous cost large enough to get through the first iteration
+    T previous_cost = Cost() * 100;
+    T current_cost;
+    for (int i = 0; i < iterations; ++i) {
       Gradient();
-      std::cout << Cost() << std::endl;
+      std::cout <<"Cost: "<< Cost() << std::endl << std::endl;
+      // If cost didn't change much since last iteration, stop iterating
+      current_cost = Cost();
+      if (std::abs(previous_cost - current_cost) / previous_cost <= .0001) {
+        break;
+      }
+      previous_cost = current_cost;
     }
-//    std::cout << Cost() << std::endl;
+    std::cout << "Theta: " << std::endl;
+    std::cout << theta << std::endl;
   }
 
+  // Using the calculated thetas, predict what the grouping of the input x's are
+  Vector<T> Predict(const Matrix<T> &xin) {
+    Matrix<T> prod = xin * theta;
+    Vector<T> h_of_x = Sigmoid(prod);
+    std::cout << "h_of_x:" << h_of_x << std::endl;
+    for(int i = 0; i < h_of_x.size(); ++i) {
+      if (h_of_x(i) < .5) {
+        h_of_x(i) = 0;
+      } else {
+        h_of_x(i) = 1;
+      }
+    }
+    return h_of_x;
+  }
 
- private:
+ public:
   // Computes the sigmoid of z
   Matrix<T> Sigmoid(Matrix<T> &z) {
     Matrix<T> m(z.rows(), z.cols());
@@ -111,7 +137,7 @@ class LogisticRegression {
     m.setOnes(m.rows(), m.cols());
     v.setOnes(y.size());
     T J = (-1 * y.transpose() * h_of_x.array().log().matrix() -
-    (v - y.transpose()) * (m - h_of_x).array().log().matrix()).sum() / y.size();
+    (v - y).transpose() * (m - h_of_x).array().log().matrix()).sum() / y.size();
     J += lambda/(2 * y.size()) * theta.segment(1, theta.size() - 1).array().square().sum();
     return J;
   }
