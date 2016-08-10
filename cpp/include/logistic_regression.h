@@ -85,7 +85,7 @@ class LogisticRegression {
     T current_cost;
     for (int i = 0; i < iterations; ++i) {
       Gradient();
-      std::cout <<"Cost: "<< Cost() << std::endl << std::endl;
+      //std::cout <<"Cost: "<< Cost() << std::endl << std::endl;
       // If cost didn't change much since last iteration, stop iterating
       current_cost = Cost();
       if (std::abs(previous_cost - current_cost) / previous_cost <= .0001) {
@@ -99,7 +99,13 @@ class LogisticRegression {
 
   // Using the calculated thetas, predict what the grouping of the input x's are
   Vector<T> Predict(const Matrix<T> &xin) {
-    Matrix<T> prod = xin * theta;
+    Nice::Matrix<T> predx(xin.rows(), xin.cols() + 1);
+    predx.col(0).setOnes();
+    for(int i = 1; i <= xin.cols(); ++i) {
+      predx.col(i) = xin.col(i - 1);
+    }
+    Matrix<T> prod = predx * theta;
+    std::cout<< "prod: " << prod << std::endl;
     Vector<T> h_of_x = Sigmoid(prod);
     std::cout << "h_of_x:" << h_of_x << std::endl;
     for(int i = 0; i < h_of_x.size(); ++i) {
@@ -112,7 +118,7 @@ class LogisticRegression {
     return h_of_x;
   }
 
- public:
+ private:
   // Computes the sigmoid of z
   Matrix<T> Sigmoid(Matrix<T> &z) {
     Matrix<T> m(z.rows(), z.cols());
